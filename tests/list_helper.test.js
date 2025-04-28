@@ -68,3 +68,14 @@ describe('favorite blog', () => {
     });
   });
 });
+
+describe('most blogs', () => {
+  test('author with the most blogs', () => {
+    const result = listHelper.mostBlogs(allBlogs);
+
+    assert.deepStrictEqual(result, {
+      author: 'Edsger W. Dijkstra',
+      blogs: 2,
+    });
+  });
+});
