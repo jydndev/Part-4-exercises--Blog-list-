@@ -29,6 +29,35 @@ test('blog posts have id property instead of _id', async () => {
   assert.strictEqual(blog._id === undefined, true);
 });
 
+test('a valid blog can be added', async () => {
+  const newBlog = {
+    title: 'Test Blog',
+    author: 'Test Author',
+    url: 'http://testblog.com',
+    likes: 10,
+  };
+
+  const initialResponse = await api.get('/api/blogs');
+  const initialCount = initialResponse.body.length;
+
+  await api
+    .post('/api/blogs')
+    .send(newBlog)
+    .expect(201)
+    .expect('Content-Type', /application\/json/);
+
+  const response = await api.get('/api/blogs');
+  assert.strictEqual(response.body.length, initialCount + 1);
+
+  const titles = response.body.map((b) => b.title);
+  assert(titles.includes('Test Blog'));
+
+  const addedBlog = response.body.find((b) => b.title === 'Test Blog');
+  assert.strictEqual(addedBlog.author, 'Test Author');
+  assert.strictEqual(addedBlog.url, 'http://testblog.com');
+  assert.strictEqual(addedBlog.likes, 10);
+});
+
 after(async () => {
   await mongoose.connection.close();
 });
