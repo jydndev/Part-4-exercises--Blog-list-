@@ -5,13 +5,38 @@ const supertest = require('supertest');
 const app = require('../app');
 const Blog = require('../models/blog');
 
-const helper = require('./list_helper.test');
-
 const api = supertest(app);
+
+const initialBlogs = [
+  {
+    _id: '5a422a851b54a676234d17f7',
+    title: 'React patterns',
+    author: 'Michael Chan',
+    url: 'https://reactpatterns.com/',
+    likes: 7,
+    __v: 0,
+  },
+  {
+    _id: '5a422aa71b54a676234d17f8',
+    title: 'Go To Statement Considered Harmful',
+    author: 'Edsger W. Dijkstra',
+    url: 'https://homepages.cwi.nl/~storm/teaching/reader/Dijkstra68.pdf',
+    likes: 5,
+    __v: 0,
+  },
+  {
+    _id: '5a422b3a1b54a676234d17f9',
+    title: 'Canonical string reduction',
+    author: 'Edsger W. Dijkstra',
+    url: 'http://www.cs.utexas.edu/~EWD/transcriptions/EWD08xx/EWD808.html',
+    likes: 12,
+    __v: 0,
+  },
+];
 
 beforeEach(async () => {
   await Blog.deleteMany({});
-  await Blog.insertMany(helper.allBlogs);
+  await Blog.insertMany(initialBlogs);
 });
 
 test('blogs are returned as json', async () => {
@@ -73,6 +98,32 @@ test('if likes property is missing, default to 0', async () => {
     .expect('Content-Type', /application\/json/);
 
   assert.strictEqual(response.body.likes, 0);
+});
+
+test('blog without title is not added and returns 400', async () => {
+  const newBlog = {
+    author: 'Test Author',
+    url: 'http://testblog.com',
+    likes: 10,
+  };
+
+  await api.post('/api/blogs').send(newBlog).expect(400);
+
+  const response = await api.get('/api/blogs');
+  assert.strictEqual(response.body.length, initialBlogs.length);
+});
+
+test('blog without url is not added and returns 400', async () => {
+  const newBlog = {
+    title: 'Test Blog Without URL',
+    author: 'Test Author',
+    likes: 10,
+  };
+
+  await api.post('/api/blogs').send(newBlog).expect(400);
+
+  const response = await api.get('/api/blogs');
+  assert.strictEqual(response.body.length, initialBlogs.length);
 });
 
 after(async () => {
