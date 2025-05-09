@@ -8,15 +8,10 @@ const app = express();
 
 mongoose
   .connect(config.MONGODB_URI)
-  .then(async () => {
-    await Blog.deleteMany({});
-    await Blog.insertMany(blogs);
-    console.log('Dummy data inserted');
-    mongoose.connection.close();
+  .then(() => {
+    console.log('connected to MongoDB');
   })
-  .catch((err) => {
-    console.error(err);
-  });
+  .catch((err) => console.error('error connecting to MongoDB: ', err.message));
 
 app.use(express.json());
 app.use('/api/blogs', blogsRouter);
