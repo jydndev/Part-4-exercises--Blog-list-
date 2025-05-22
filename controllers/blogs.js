@@ -18,17 +18,24 @@ blogsRouter.post('/', async (request, response) => {
   }
 });
 
-blogsRouter.delete('/:id', async (request, response) => {
-  try {
-    const deletedBlog = await Blog.findByIdAndRemove(request.params.id);
+blogsRouter.delete('/:id', async (req, res) => {
+  const { id } = req.params;
 
-    if (deletedBlog) {
-      response.status(204).end();
-    } else {
-      response.status(404).json({ error: 'blog not found' });
+  if (!mongoose.Types.ObjectId.isValid(id)) {
+    return res.status(400).json({ error: 'Invalid blog ID' });
+  }
+
+  try {
+    const result = await Blog.findByIdAndDelete(id);
+
+    if (!result) {
+      return res.status(404).json({ error: 'Blog not found' });
     }
+
+    res.status(204).end();
   } catch (error) {
-    response.status(400).json({ error: error.message });
+    console.error(error);
+    res.status(400).json({ error: 'Invalid blog ID' });
   }
 });
 

@@ -126,6 +126,47 @@ test('blog without url is not added and returns 400', async () => {
   assert.strictEqual(response.body.length, initialBlogs.length);
 });
 
+// DELETE tests
+test('succeeds with status code 204 if id is valid', async () => {
+  const blogsAtStart = await Blog.find({});
+  const blogToDelete = blogsAtStart[0];
+
+  await api.delete(`/api/blogs/${blogToDelete.id}`).expect(204);
+
+  const blogsAtEnd = await Blog.find({});
+  assert.strictEqual(blogsAtEnd.length, initialBlogs.length - 1);
+
+  const titles = blogsAtEnd.map((blog) => blog.title);
+  assert.strictEqual(titles.includes(blogToDelete.title), false);
+});
+
+test('returns 404 if blog with id does not exist', async () => {
+  const nonExistingId = await nonExistingBlogId();
+
+  await api.delete(`/api/blogs/${nonExistingId}`).expect(404);
+});
+
+test('returns 400 if id is invalid', async () => {
+  const invalidId = 'invalidid123';
+
+  await api.delete(`/api/blogs/${invalidId}`).expect(400);
+});
+
+// Helper function to generate a valid but non-existing blog ID
+const nonExistingBlogId = async () => {
+  const blog = new Blog({
+    title: 'willberemovedsoon',
+    author: 'Test Author',
+    url: 'http://testurl.com',
+    likes: 0,
+  });
+
+  await blog.save();
+  await blog.remove();
+
+  return blog._id.toString();
+};
+
 after(async () => {
   await mongoose.connection.close();
 });
